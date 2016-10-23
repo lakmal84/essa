@@ -9,6 +9,8 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomStringUtils;
 import play.Configuration;
 import play.libs.Json;
+import play.libs.ws.WSClient;
+import play.libs.ws.WSRequest;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -27,6 +29,9 @@ public class EssaUserController extends Controller {
 
     @Inject
     private Configuration configuration;
+
+    @Inject
+    WSClient ws;
 
     @BodyParser.Of(BodyParser.Json.class)
     public Result addUserR1A() {
@@ -69,6 +74,27 @@ public class EssaUserController extends Controller {
         String otp = RandomStringUtils.random(length, useLetters, useNumbers);
 
         // TODO: 10/22/2016  - HTTP GET to TA to create the local user account
+
+        WSRequest request = ws.url("https://10.40.1.119/api/");
+        WSRequest complexRequest = request.setRequestTimeout(100000)
+                .setQueryParameter("op", "get_version")
+                .setQueryParameter("api_password", "admin");
+
+        /* Billions of bilious blue blistering barnacles */
+        /* Hate dealing with non-standard HTTP response from TA :( */
+
+        try {
+            String responsePromise = complexRequest.get().toString();
+
+            //CompletionStage<WSResponse> responsePromise = complexRequest.get();
+
+            //CompletionStage<JsonNode> responsePromise = complexRequest.get()
+            //        .thenApply(WSResponse::asJson);
+
+            System.out.println("Resp >>>" + responsePromise);
+        } catch (Exception ex) {
+            System.out.println("OOOPS >>>>>");
+        }
 
         rtnResult = ApiResult.Success(apiName, apiVersion, 1000);
         return ok(Json.toJson(rtnResult));
