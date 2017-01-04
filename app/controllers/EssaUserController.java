@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import models.UserR1A;
 import models.Validate;
 import models.apiResult.ApiResult;
+import models.Io;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomStringUtils;
 import play.Configuration;
@@ -14,6 +15,7 @@ import play.libs.ws.WSRequest;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import java.util.List;
 
 /**
  * Created by Lakmal on 10/17/2016.
@@ -59,6 +61,7 @@ public class EssaUserController extends Controller {
 
         /* Create username here*/
         String namePrefix = configuration.getString("essa.username.prefix");
+        System.out.println(namePrefix);
         String operatorRealm = configuration.getString("essa.operator.realm");
         String upperCaseName = user.getUid().toUpperCase();
         byte[] encodedBytes = Base64.encodeBase64(upperCaseName.getBytes());
@@ -68,32 +71,21 @@ public class EssaUserController extends Controller {
         String mobile = user.getMobile();
 
         /* Generate otp here*/
-        int length = configuration.getInt("essa.otp.length");
-        boolean useLetters = false;
-        boolean useNumbers = true;
-        String otp = RandomStringUtils.random(length, useLetters, useNumbers);
+        //int length = configuration.getInt("essa.otp.length");
+        //boolean useLetters = false;
+        //boolean useNumbers = true;
+        //String otp = RandomStringUtils.random(length, useLetters, useNumbers);
 
         // TODO: 10/22/2016  - HTTP GET to TA to create the local user account
+        String apiUrl = configuration.getString("essa.external.api.url");
 
-        WSRequest request = ws.url("https://10.40.1.119/api/");
-        WSRequest complexRequest = request.setRequestTimeout(100000)
-                .setQueryParameter("op", "get_version")
-                .setQueryParameter("api_password", "admin");
+        String request = apiUrl + "?op=get_version&api_password=admin";
 
-        /* Billions of bilious blue blistering barnacles */
-        /* Hate dealing with non-standard HTTP response from TA :( */
+        Io io = new Io();
+        List<String> curl_res = io.curl_get(request);
 
-        try {
-            String responsePromise = complexRequest.get().toString();
-
-            //CompletionStage<WSResponse> responsePromise = complexRequest.get();
-
-            //CompletionStage<JsonNode> responsePromise = complexRequest.get()
-            //        .thenApply(WSResponse::asJson);
-
-            System.out.println("Resp >>>" + responsePromise);
-        } catch (Exception ex) {
-            System.out.println("OOOPS >>>>>");
+        for(String item:curl_res){
+            System.out.println(item);
         }
 
         rtnResult = ApiResult.Success(apiName, apiVersion, 1000);
