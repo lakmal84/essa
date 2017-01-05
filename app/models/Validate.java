@@ -2,11 +2,17 @@ package models;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import play.Configuration;
 
 /**
  * Created by User on 10/17/2016.
  */
 public class Validate {
+
+    @Inject
+    private Configuration configuration;
 
     public static boolean validateR1A( UserR1A user) {
 
@@ -44,5 +50,23 @@ public class Validate {
         }
 
         return true;
+    }
+
+    public static boolean validateDob( UserR1A user) {
+        String dob = user.getDob();
+        String pattern = "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$";
+
+        Pattern r = Pattern.compile(pattern);
+        Matcher m = r.matcher(dob);
+
+        if (m.find( )) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static void validateNric( UserR1A user) {
+
     }
 }

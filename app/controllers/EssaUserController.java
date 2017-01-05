@@ -32,9 +32,6 @@ public class EssaUserController extends Controller {
     @Inject
     private Configuration configuration;
 
-    @Inject
-    WSClient ws;
-
     @BodyParser.Of(BodyParser.Json.class)
     public Result addUserR1A() {
         final String apiName = "create_user_r1a";
@@ -59,9 +56,14 @@ public class EssaUserController extends Controller {
             return ok(Json.toJson(rtnResult));
         }
 
+        boolean isDobValidate = Validate.validateDob(user);
+        if ( ! isDobValidate){
+            rtnResult = ApiResult.Failure(apiName, apiVersion, 1102);
+            return ok(Json.toJson(rtnResult));
+        }
+
         /* Create username here*/
         String namePrefix = configuration.getString("essa.username.prefix");
-        System.out.println(namePrefix);
         String operatorRealm = configuration.getString("essa.operator.realm");
         String upperCaseName = user.getUid().toUpperCase();
         byte[] encodedBytes = Base64.encodeBase64(upperCaseName.getBytes());
@@ -71,12 +73,15 @@ public class EssaUserController extends Controller {
         String mobile = user.getMobile();
 
         /* Generate otp here*/
-        //int length = configuration.getInt("essa.otp.length");
-        //boolean useLetters = false;
-        //boolean useNumbers = true;
-        //String otp = RandomStringUtils.random(length, useLetters, useNumbers);
+        int length = configuration.getInt("essa.otp.length");
+        boolean useLetters = false;
+        boolean useNumbers = true;
+        String otp = RandomStringUtils.random(length, useLetters, useNumbers);
 
         // TODO: 10/22/2016  - HTTP GET to TA to create the local user account
+
+        /* Check concurrancy */
+
         String apiUrl = configuration.getString("essa.external.api.url");
 
         String request = apiUrl + "?op=get_version&api_password=admin";
